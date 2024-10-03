@@ -7,24 +7,33 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 
 import static utils.Constants.PlayerConstants.*;
+import static utils.HelpMethods.*;
 
 public class Player extends Entity{
 
     private BufferedImage[][] animations;
     private int animTick, animIndex, animSpeed = 15;
     private int playerAction = ATTACK_1;
-    private boolean left, right, up, down;
+    private boolean left, right, up, down, jump;
     private boolean moving = false, attacking = false;
     private float playerSpeed = 2.0f;
     private int lvlData[][];
     private float xDrawOffset = 21 * Game.SCALE;        // 21px - offset from tile border to actual player position
     private float yDrawOffset = 4 * Game.SCALE;         // 4px - offset from tile border to actual player position
 
+    // Jumping / Gravity
+    private float airSpeed = 0f;
+    private float gravity = 0.04f * Game.SCALE;
+    private float jumpSpeed = -2.25f * Game.SCALE;
+    private float fallSpeedAfterCollision = 0.5f * Game.SCALE;
+    private boolean inAir = false;
+
+
 
     public Player(float x, float y, int width, int height) {
         super(x, y, width, height);
         loadAnimations();
-        initHitbox(x, y, 20*Game.SCALE, 28*Game.SCALE);     // 20px x 28px - actual size of the player
+        initHitbox(x, y, 20*Game.SCALE, 27*Game.SCALE);     // 20px x 27px - actual size of the player
     }
 
     /**
@@ -43,7 +52,7 @@ public class Player extends Entity{
         // Player image has a size of a tile so it's a normal rectangle
         // Hitbox is smaller than the image, so when we draw player itself we need to set some offsets
         g.drawImage(animations[playerAction][animIndex], (int)(hitbox.x - xDrawOffset), (int)(hitbox.y - yDrawOffset), width, height,null);
-        drawHitbox(g);
+        //drawHitbox(g);
     }
 
     /**
@@ -70,6 +79,9 @@ public class Player extends Entity{
      */
     public void loadLvlData(int[][] lvlData) {
         this.lvlData = lvlData;
+        // If we start the game in the air
+        if (!IsEntityOnFloor(hitbox, lvlData))
+            inAir = true;
     }
 
     /**
@@ -78,34 +90,81 @@ public class Player extends Entity{
     private void updatePosition() {
 
         moving = false;
-        if (!left && !right && !up && !down)
+        
+        if (jump)
+            jump();
+        
+        if (!left && !right && !inAir)
             return;
 
-        float xSpeed = 0, ySpeed = 0;
+        float xSpeed = 0;
 
-        if (left && !right)
-            xSpeed = -playerSpeed;
-        else if (right && !left)
-            xSpeed = playerSpeed;
+        if (left)
+            xSpeed -= playerSpeed;
+        if (right)
+            xSpeed += playerSpeed;
 
-        if (up && !down)
-            ySpeed = -playerSpeed;
-        else if (down && !up)
-            ySpeed = playerSpeed;
+        if (!inAir)
+            if (!IsEntityOnFloor(hitbox, lvlData))
+                // If we are not in air yet (not falling and not jumping) and we are not on the floor
+                // then we need to fall
+                inAir = true;
 
-//        if (utils.HelpMethods.CanMoveHere(x+xSpeed, y+ySpeed, width, height, lvlData)) {
-//            this.x += xSpeed;
-//            this.y += ySpeed;
-//            moving = true;
-//        }
+        if (inAir) {
 
-        if (utils.HelpMethods.CanMoveHere(hitbox.x + xSpeed, hitbox.y + ySpeed, hitbox.width, hitbox.height, lvlData)) {
-            hitbox.x += xSpeed;
-            hitbox.y += ySpeed;
-            moving = true;
+            if (CanMoveHere(hitbox.x, hitbox.y + airSpeed, hitbox.width, hitbox.height, lvlData)) {
+                // No collision
+                hitbox.y += airSpeed;
+                airSpeed += gravity;
+                updateXPos(xSpeed);
+            } else {
+                // Can't move but still some little space between the player and floor or ceiling so we want to move right to the collision
+                hitbox.y = GetEntityYPosUnderOrAboveFloor(hitbox, airSpeed);
+                if (airSpeed > 0)
+                    resetInAir();
+                else
+                    airSpeed = fallSpeedAfterCollision;
+
+                updateXPos(xSpeed);
+            }
+
+        } else {
+            updateXPos(xSpeed);
         }
 
+        moving = true;
 
+    }
+
+    /**
+     * Jump
+     */
+    private void jump() {
+        if (inAir)
+            return;
+
+        inAir = true;
+        airSpeed = jumpSpeed;       // Initial speed of jumping
+    }
+
+    /**
+     * Update x position from updatePosition() method
+     */
+    private void updateXPos(float xSpeed) {
+        if (CanMoveHere(hitbox.x + xSpeed, hitbox.y, hitbox.width, hitbox.height, lvlData)) {
+            hitbox.x += xSpeed;
+        } else {
+            // Can't move but still some little space between the player and wall so we want to move right to the wall
+            hitbox.x = GetEntityXPosNextToWall(hitbox, xSpeed);
+        }
+    }
+
+    /**
+     * Reset in air
+     */
+    private void resetInAir() {
+        inAir = false;
+        airSpeed = 0;
     }
 
     /**
@@ -135,6 +194,13 @@ public class Player extends Entity{
             playerAction = RUNNING;
         else
             playerAction = IDLE;
+
+        if (inAir) {
+            if (airSpeed < 0)
+                playerAction = JUMP;
+            else
+                playerAction = FALLING;
+        }
 
         if (attacking)
             playerAction = ATTACK_1;
@@ -199,5 +265,9 @@ public class Player extends Entity{
 
     public void setDown(boolean down) {
         this.down = down;
+    }
+
+    public void setJump(boolean jump) {
+        this.jump = jump;
     }
 }
