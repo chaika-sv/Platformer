@@ -1,6 +1,9 @@
 package gamestates;
 
 import main.Game;
+import ui.MenuButton;
+
+import java.awt.event.MouseEvent;
 
 public class State {
 
@@ -8,6 +11,16 @@ public class State {
 
     public State(Game game) {
         this.game = game;
+    }
+
+    /**
+     * Checking if mouse was clicked inside the menu button
+     * @param e mouse event
+     * @param mb menu button
+     * @return true if clicked inside the button
+     */
+    public boolean isIn(MouseEvent e, MenuButton mb) {
+        return mb.getBounds().contains(e.getX(), e.getY());
     }
 
     public Game getGame() {

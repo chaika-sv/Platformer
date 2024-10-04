@@ -110,6 +110,11 @@ public class Game implements Runnable{
             case MENU -> {
                 menu.update();
             }
+            case OPTIONS -> {
+            }
+            case QUIT -> {
+                System.exit(0);
+            }
         }
 
     }
