@@ -48,10 +48,10 @@ public class Player extends Entity{
     /**
      * Draw player depending on selected action (row on sprite) and current animation index (column on sprite)
      */
-    public void render(Graphics g) {
+    public void render(Graphics g, int xLvlOffset) {
         // Player image has a size of a tile so it's a normal rectangle
         // Hitbox is smaller than the image, so when we draw player itself we need to set some offsets
-        g.drawImage(animations[playerAction][animIndex], (int)(hitbox.x - xDrawOffset), (int)(hitbox.y - yDrawOffset), width, height,null);
+        g.drawImage(animations[playerAction][animIndex], (int)(hitbox.x - xDrawOffset) - xLvlOffset, (int)(hitbox.y - yDrawOffset), width, height,null);
         //drawHitbox(g);
     }
 
@@ -93,9 +93,10 @@ public class Player extends Entity{
         
         if (jump)
             jump();
-        
-        if (!left && !right && !inAir)
-            return;
+
+        if (!inAir)
+            if ((!left && !right) || (left && right))
+                return;;
 
         float xSpeed = 0;
 
