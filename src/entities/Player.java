@@ -52,7 +52,7 @@ public class Player extends Entity{
         // Player image has a size of a tile so it's a normal rectangle
         // Hitbox is smaller than the image, so when we draw player itself we need to set some offsets
         g.drawImage(animations[playerAction][animIndex], (int)(hitbox.x - xDrawOffset) - xLvlOffset, (int)(hitbox.y - yDrawOffset), width, height,null);
-        //drawHitbox(g);
+        //drawHitbox(g, xLvlOffset);
     }
 
     /**
