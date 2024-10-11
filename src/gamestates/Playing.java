@@ -1,5 +1,6 @@
 package gamestates;
 
+import entities.EnemyManager;
 import entities.Player;
 import levels.LevelManager;
 import main.Game;
@@ -18,6 +19,7 @@ public class Playing extends State implements Statemethods{
 
     private Player player;
     private LevelManager levelManager;
+    private EnemyManager enemyManager;
     private boolean paused = false;
     private PauseOverLay pauseOverLay;
 
@@ -49,6 +51,7 @@ public class Playing extends State implements Statemethods{
 
     private void initClasses() {
         levelManager = new LevelManager(game);
+        enemyManager = new EnemyManager(this);
         player = new Player(200, 200, (int) (64 * Game.SCALE), (int) (40 * Game.SCALE));
         player.loadLvlData(levelManager.getCurrentLevel().getLvlData());
         pauseOverLay = new PauseOverLay(this);
@@ -64,6 +67,7 @@ public class Playing extends State implements Statemethods{
         if (!paused) {
             levelManager.update();
             player.update();
+            enemyManager.update();
             checkCloseToBorder();
         } else {
             pauseOverLay.update();
@@ -129,6 +133,7 @@ public class Playing extends State implements Statemethods{
 
         levelManager.draw(g, xLvlOffset);
         player.render(g, xLvlOffset);
+        enemyManager.draw(g, xLvlOffset);
 
         if (paused) {
             g.setColor(new Color(0, 0, 0, 150));        // Transparent black
@@ -138,6 +143,8 @@ public class Playing extends State implements Statemethods{
     }
 
     private void drawClouds(Graphics g) {
+        // 0.3 and 0.7 to make big clouds moving slower than small clouds
+
         for (int i = 0; i < 3; i++)
             g.drawImage(bigCloud, i * BIG_CLOUD_WIDTH - (int) (xLvlOffset * 0.3), (int) (204 * Game.SCALE), BIG_CLOUD_WIDTH, BIG_CLOUD_HEIGHT, null);
 
