@@ -14,9 +14,9 @@ public class GameWindow {
 
         jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         jFrame.add(gamePanel);
-        jFrame.setLocationRelativeTo(null);     // center
         jFrame.setResizable(false);
         jFrame.pack();                          // fit the size of the window to the size of component (gamePanel)
+        jFrame.setLocationRelativeTo(null);     // center
         jFrame.setVisible(true);
         jFrame.addWindowFocusListener(new WindowFocusListener() {
                                           @Override

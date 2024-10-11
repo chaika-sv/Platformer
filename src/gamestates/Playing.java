@@ -9,6 +9,10 @@ import utils.LoadSave;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.util.Random;
+
+import static utils.Constants.Environment.*;
 
 public class Playing extends State implements Statemethods{
 
@@ -24,9 +28,23 @@ public class Playing extends State implements Statemethods{
     private int maxTilesOffset = lvlTilesWide - Game.TILES_IN_WIDTH;    // whole level width minus visible screen width (in tiles). Invisible part of the level
     private int maxLvlOffsetX = maxTilesOffset * Game.TILES_SIZE;       // previous one in pixels
 
+    private BufferedImage backgroundImg, bigCloud, smallCloud;
+    private int[] smallCloudPos;        // random y positions of small clouds
+    private Random rnd = new Random();
+
     public Playing(Game game) {
         super(game);
         initClasses();
+
+        backgroundImg = LoadSave.GetSpriteAtlas(LoadSave.PLAYING_BACKGROUND_IMG);
+        bigCloud = LoadSave.GetSpriteAtlas(LoadSave.BIG_CLOUDS);
+        smallCloud = LoadSave.GetSpriteAtlas(LoadSave.SMALL_CLOUDS);
+        smallCloudPos = new int[8];
+        // Set random y positions for small clouds
+        for (int i = 0; i < smallCloudPos.length; i++) {
+            // Start from 90 and plus random from 0 to 100
+            smallCloudPos[i] = (int)(90 + Game.SCALE) + rnd.nextInt((int) (100 * Game.SCALE));
+        }
     }
 
     private void initClasses() {
@@ -105,6 +123,10 @@ public class Playing extends State implements Statemethods{
 
     @Override
     public void draw(Graphics g) {
+        g.drawImage(backgroundImg, 0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT, null);
+
+        drawClouds(g);
+
         levelManager.draw(g, xLvlOffset);
         player.render(g, xLvlOffset);
 
@@ -113,6 +135,15 @@ public class Playing extends State implements Statemethods{
             g.fillRect(0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT);
             pauseOverLay.draw(g);
         }
+    }
+
+    private void drawClouds(Graphics g) {
+        for (int i = 0; i < 3; i++)
+            g.drawImage(bigCloud, i * BIG_CLOUD_WIDTH - (int) (xLvlOffset * 0.3), (int) (204 * Game.SCALE), BIG_CLOUD_WIDTH, BIG_CLOUD_HEIGHT, null);
+
+        for (int i = 0; i < smallCloudPos.length; i++)
+            g.drawImage(smallCloud, 4 * i * SMALL_CLOUD_WIDTH - (int) (xLvlOffset * 0.7), smallCloudPos[i], SMALL_CLOUD_WIDTH, SMALL_CLOUD_HEIGHT, null);
+
     }
 
     @Override
