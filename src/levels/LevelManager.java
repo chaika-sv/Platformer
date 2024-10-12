@@ -7,6 +7,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 
 import static main.Game.TILES_SIZE;
+import static utils.Constants.DEBUG_MODE;
 
 public class LevelManager {
 
@@ -44,6 +45,8 @@ public class LevelManager {
             for (int i = 0; i < levelOne.getLvlData()[0].length; i++) {
                 int index = levelOne.getSpriteIndex(i, j);
                 g.drawImage(levelSprite[index], i*TILES_SIZE - xLvlOffset, j*TILES_SIZE, TILES_SIZE, TILES_SIZE, null);
+                if (DEBUG_MODE)
+                    g.drawRect(i*TILES_SIZE - xLvlOffset, j*TILES_SIZE, TILES_SIZE, TILES_SIZE);
             }    
         
     }

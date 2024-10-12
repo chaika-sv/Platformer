@@ -13,6 +13,7 @@ public class Game implements Runnable{
     private GameWindow gameWindow;
     private GamePanel gamePanel;
     private Thread gameThread;
+
     private final int FPS_SET = 120;
     private final int UPS_SET = 200;        // updates per second
 
@@ -92,7 +93,7 @@ public class Game implements Runnable{
             // At the same time we are calculating actual FPS (how many frames we paint per second)
             if (System.currentTimeMillis() - lastCheck >= 1000) {
                 lastCheck = System.currentTimeMillis();
-                System.out.println("FPS: " + frames + " | UPS: " + updates);
+                //System.out.println("FPS: " + frames + " | UPS: " + updates);
                 frames = 0;
                 updates = 0;
             }
