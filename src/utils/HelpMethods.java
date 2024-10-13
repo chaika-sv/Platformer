@@ -34,12 +34,16 @@ public class HelpMethods {
         float xIndex = x / Game.TILES_SIZE;
         float yIndex = y / Game.TILES_SIZE;
 
+        return IsTileSolid((int) xIndex, (int) yIndex, lvlData);
+
+    }
+
+    public static boolean IsTileSolid(int xTile, int yTile, int[][] lvlData) {
         // What do we have in this position in the level
-        int value = lvlData[(int)yIndex][(int)xIndex];
+        int value = lvlData[yTile][xTile];
 
         // It's a tile (11 is white empty tile so it's not a tile)
         return value >= 0 && value < 48 && value != 11;
-
     }
 
     /**
@@ -102,6 +106,36 @@ public class HelpMethods {
      */
     public static boolean IsFloor(Rectangle2D.Float hitbox, float xSpeed, int[][] lvlData) {
         return IsSolid(hitbox.x + xSpeed, hitbox.y + hitbox.height + 1, lvlData);
+    }
+
+    /**
+     * Check if someone can move through all tiles between xStart and xEnd
+     */
+    public static boolean IsAllTilesWalkable(int xStart, int xEnd, int y, int[][] lvlData) {
+        for (int i = 0; i < xEnd - xStart; i++) {
+            // If there is solid tile on the way then we can't move
+            if (IsTileSolid(xStart + i, y, lvlData))
+                return false;
+            // If there is no solid tile under next tile (it's a pit) then we can't move
+            if (!IsTileSolid(xStart + i, y + 1, lvlData))
+                return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Check if we can move from firstHitbox to secondHitbox
+     */
+    public static boolean IsSightClear(int[][] lvlData, Rectangle2D.Float firstHitbox, Rectangle2D.Float secondHitbox, int tileY) {
+        int firstXTile = (int) (firstHitbox.x / Game.TILES_SIZE);
+        int secondXTile = (int) (secondHitbox.x / Game.TILES_SIZE);
+
+        if (firstXTile > secondXTile)
+            return IsAllTilesWalkable(secondXTile, firstXTile, tileY, lvlData);
+        else
+            return IsAllTilesWalkable(firstXTile, secondXTile, tileY, lvlData);
+
     }
 
 }
