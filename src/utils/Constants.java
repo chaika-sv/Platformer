@@ -4,7 +4,7 @@ import main.Game;
 
 public class Constants {
 
-    public static final boolean DEBUG_MODE = false;
+    public static final boolean DEBUG_MODE = true;
 
     public static class EnemyConstants {
         public static final int CRABBY = 0;
@@ -80,19 +80,19 @@ public class Constants {
         public static final int RUNNING = 1;
         public static final int JUMP = 2;
         public static final int FALLING = 3;
-        public static final int GROUND = 4;
+        public static final int ATTACK = 4;
         public static final int HIT = 5;
-        public static final int ATTACK_1 = 6;
-        public static final int ATTACK_JUMP_1 = 7;
-        public static final int ATTACK_JUMP_2 = 8;
+        public static final int DEAD = 6;
+
 
         public static int GetSpritesAmount(int player_action){
             return switch (player_action) {
+                case DEAD -> 8;
                 case RUNNING -> 6;
                 case IDLE -> 5;
                 case HIT -> 4;
-                case JUMP, ATTACK_1, ATTACK_JUMP_1, ATTACK_JUMP_2 -> 3;
-                case GROUND -> 2;
+                case JUMP, ATTACK -> 3;
+                case FALLING -> 1;
                 default -> 1;
             };
         }

@@ -4,6 +4,7 @@ import main.Game;
 import utils.LoadSave;
 
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
 import static utils.Constants.DEBUG_MODE;
@@ -14,7 +15,7 @@ public class Player extends Entity{
 
     private BufferedImage[][] animations;
     private int animTick, animIndex, animSpeed = 15;
-    private int playerAction = ATTACK_1;
+    private int playerAction = ATTACK;
     private boolean left, right, up, down, jump;
     private boolean moving = false, attacking = false;
     private float playerSpeed = 1.2f * Game.SCALE;
@@ -29,21 +30,74 @@ public class Player extends Entity{
     private float fallSpeedAfterCollision = 0.5f * Game.SCALE;
     private boolean inAir = false;
 
+    // Status bar
+    private BufferedImage statusBarImg;
+
+    private int statusBarWidth = (int) (192 * Game.SCALE);
+    private int statusBarHeight = (int) (58 * Game.SCALE);
+    private int statusBarX = (int) (10 * Game.SCALE);       // Actual pos of status bar on the sprite
+    private int statusBarY = (int) (10 * Game.SCALE);       // Actual pos of status bar on the sprite
+
+    private int healthBarWidth = (int) (150 * Game.SCALE);
+    private int healthBarHeight = (int) (4 * Game.SCALE);
+    private int healthBarXStart = (int) (34 * Game.SCALE);
+    private int healthBarYStart = (int) (14 * Game.SCALE);
+
+    private int maxHealth = 100;
+    private int currentHealth = maxHealth;
+    private int healthWidth = healthBarWidth;
+
+    // Attack box - the box in front of the player when player can make some damage to enemy
+    private Rectangle2D.Float attackBox;
+
+    private int flipX = 0;
+    private int flipW = 1;
 
 
     public Player(float x, float y, int width, int height) {
         super(x, y, width, height);
         loadAnimations();
         initHitbox(x, y, (int) (20*Game.SCALE), (int) (27*Game.SCALE));     // 20px x 27px - actual size of the player
+        initAttackBox();
+    }
+
+    /**
+     * It's a box ahead of the player. Inside the box (if player attacks) enemy receive damage
+     */
+    private void initAttackBox() {
+        attackBox = new Rectangle2D.Float(x, y, (int) (20 * Game.SCALE), (int) (20 * Game.SCALE));
     }
 
     /**
      * Update player's position and animation
      */
     public void update() {
+        updateHealthBar();
+        updateAttackBox();
+
         updatePosition();
         updateAnimationTick();
         setAnimation();
+    }
+
+    /**
+     * Stick attack box to the player (should be always ahead him)
+     */
+    private void updateAttackBox() {
+        if (right) {
+            attackBox.x = hitbox.x + hitbox.width + (int) (Game.SCALE * 10);
+        } if (left) {
+            attackBox.x = hitbox.x - hitbox.width - (int) (Game.SCALE * 10);
+        }
+
+        attackBox.y = hitbox.y + (Game.SCALE * 10);
+    }
+
+    /**
+     * Adjust current health to actual health bar width depends on how many health left
+     */
+    private void updateHealthBar() {
+        healthWidth = (int) ((currentHealth / (float)maxHealth) * healthBarWidth);
     }
 
     /**
@@ -52,9 +106,53 @@ public class Player extends Entity{
     public void render(Graphics g, int xLvlOffset) {
         // Player image has a size of a tile so it's a normal rectangle
         // Hitbox is smaller than the image, so when we draw player itself we need to set some offsets
-        g.drawImage(animations[playerAction][animIndex], (int)(hitbox.x - xDrawOffset) - xLvlOffset, (int)(hitbox.y - yDrawOffset), width, height,null);
-        if (DEBUG_MODE)
+        // We need xLvlOffset to move player relatively the level
+        // We need flipX and flipW to flip player to the left (flipX = width, flipW = -1) or to the right (flipX = 0, flipW = 1)
+        g.drawImage(animations[playerAction][animIndex],
+                (int)(hitbox.x - xDrawOffset) - xLvlOffset + flipX,
+                (int)(hitbox.y - yDrawOffset),
+                width * flipW,
+                height,
+                null);
+        if (DEBUG_MODE) {
             drawHitbox(g, xLvlOffset);
+            drawAttackBox(g, xLvlOffset);
+        }
+
+        drawUI(g);
+    }
+
+    /**
+     * Draw it just for debugging
+     */
+    private void drawAttackBox(Graphics g, int xLvlOffset) {
+        g.setColor(Color.RED);
+        g.drawRect((int)attackBox.x - xLvlOffset, (int)attackBox.y, (int)attackBox.width, (int)attackBox.height);
+    }
+
+    /**
+     * Draw status bar, etc
+     */
+    private void drawUI(Graphics g) {
+        // Draw the sprite itself (with heart icon, and two placeholders for health and energy)
+        g.drawImage(statusBarImg, statusBarX, statusBarY, statusBarWidth, statusBarHeight, null);
+        g.setColor(Color.red);
+        // Draw status bar for health (with statusBarX and statusBarY offsets)
+        // healthWidth - actual health (less or equal than healthBarWidth)
+        g.fillRect(healthBarXStart + statusBarX, healthBarYStart + statusBarY, healthWidth, healthBarHeight);
+    }
+
+    /**
+     * Change health (increase or decrease and die if <= 0)
+     */
+    public void changeHealth(int value) {
+        currentHealth += value;
+        if (currentHealth <= 0) {
+            currentHealth = 0;
+            //gameOver();
+        } else if (currentHealth >= maxHealth) {
+            currentHealth = maxHealth;
+        }
     }
 
     /**
@@ -64,7 +162,8 @@ public class Player extends Entity{
 
         BufferedImage img = LoadSave.GetSpriteAtlas(LoadSave.PLAYER_ATLAS);
 
-        animations = new BufferedImage[9][6];
+        // 7 animations with max animations count 8
+        animations = new BufferedImage[7][8];
 
         for (int j = 0; j < animations.length; j++) {
             for (int i = 0; i < animations[j].length; i++) {
@@ -72,6 +171,8 @@ public class Player extends Entity{
             }
 
         }
+
+        statusBarImg = LoadSave.GetSpriteAtlas(LoadSave.STATUS_BAR);
 
     }
 
@@ -102,10 +203,16 @@ public class Player extends Entity{
 
         float xSpeed = 0;
 
-        if (left)
+        if (left) {
             xSpeed -= playerSpeed;
-        if (right)
+            flipX = width;
+            flipW = -1;
+        }
+        if (right) {
             xSpeed += playerSpeed;
+            flipX = 0;
+            flipW = 1;
+        }
 
         if (!inAir)
             if (!IsEntityOnFloor(hitbox, lvlData))
@@ -206,7 +313,7 @@ public class Player extends Entity{
         }
 
         if (attacking)
-            playerAction = ATTACK_1;
+            playerAction = ATTACK;
 
         // In case we have new animation (i.e. another button was pressed) we need to reset previous animation
         if (startAni != playerAction)
