@@ -2,6 +2,8 @@ package entities;
 
 import main.Game;
 
+import java.awt.geom.Rectangle2D;
+
 import static utils.Constants.EnemyConstants.*;
 import static utils.HelpMethods.*;
 import static utils.Constants.Directions.*;
@@ -18,11 +20,17 @@ public abstract class Enemy extends Entity{
     protected int walkDir = LEFT;
     protected int tileY;
     protected float attackDistance = Game.TILES_SIZE;
+    protected int maxHealth;
+    protected int currentHealth;
+    protected boolean active = true;
+    protected boolean attackChecked;
 
     public Enemy(float x, float y, int width, int height, int enemyType) {
         super(x, y, width, height);
         this.enemyType = enemyType;
         initHitbox(x, y, width, height);
+        maxHealth = GetMaxHealth(enemyType);
+        currentHealth = maxHealth;
     }
 
     /**
@@ -134,9 +142,12 @@ public abstract class Enemy extends Entity{
             aniIndex++;
             if (aniIndex >= GetSpriteAmount(enemyType, enemyState)) {
                 aniIndex = 0;
-                if (enemyState == ATTACK)
-                    // Change state to IDLE as soon as enemy is done with ATTACK
-                    enemyState = IDLE;
+
+                switch (enemyState) {
+                    case ATTACK, HIT -> enemyState = IDLE;      // Change state to IDLE as soon as enemy is done with ATTACK or was hit
+                    case DEAD -> active = false;
+                }
+
             }
 
         }
@@ -149,6 +160,42 @@ public abstract class Enemy extends Entity{
             walkDir = LEFT;
     };
 
+    /**
+     * The enemy was hurt and we need to hit or to kill him
+     * @param amount damage amount
+     */
+    public void hurt(int amount) {
+        currentHealth -= amount;
+        if (currentHealth <= 0)
+            newState(DEAD);
+        else
+            // todo: implement hit animation
+            newState(HIT);
+    }
+
+    /**
+     * Check if enemy hit the player
+     * @param attackBox enemy's attack box (depends on enemy type)
+     * @param player player that was hit
+     */
+    protected void checkEnemyHit(Rectangle2D.Float attackBox, Player player) {
+        if(attackBox.intersects(player.hitbox))
+            player.changeHealth(-GetEnemyDamage(enemyType));
+        attackChecked = true;
+    }
+
+    /**
+     * Reset everything for the enemy to be ready to start the game again
+     */
+    public void resetEnemy() {
+        hitbox.x = x;
+        hitbox.y = y;
+        firstUpdate = true;
+        currentHealth = maxHealth;
+        newState(IDLE);
+        active = true;
+        fallSpeed = 0;
+    }
 
     public int getAniIndex() {
         return aniIndex;
@@ -156,6 +203,10 @@ public abstract class Enemy extends Entity{
 
     public int getEnemyState() {
         return enemyState;
+    }
+
+    public boolean isActive() {
+        return active;
     }
 
 }

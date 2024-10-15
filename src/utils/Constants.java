@@ -4,7 +4,7 @@ import main.Game;
 
 public class Constants {
 
-    public static final boolean DEBUG_MODE = true;
+    public static final boolean DEBUG_MODE = false;
 
     public static class EnemyConstants {
         public static final int CRABBY = 0;
@@ -27,16 +27,40 @@ public class Constants {
             switch (enemy_type) {
                 case CRABBY:
                     switch (enemy_state) {
-                        case IDLE: return 9;
-                        case RUNNING: return 6;
-                        case ATTACK: return 7;
-                        case HIT: return 4;
-                        case DEAD: return 5;
+                        case IDLE:
+                            return 9;
+                        case RUNNING:
+                            return 6;
+                        case ATTACK:
+                            return 7;
+                        case HIT:
+                            return 4;
+                        case DEAD:
+                            return 5;
                     }
             }
 
             return 0;
         }
+
+        public static int GetMaxHealth(int enemy_type) {
+            switch (enemy_type) {
+                case CRABBY:
+                    return 10;
+                default:
+                    return 1;
+            }
+        }
+
+        public static int GetEnemyDamage(int enemy_type) {
+            switch (enemy_type) {
+                case CRABBY:
+                    return 15;
+                default:
+                    return 0;
+            }
+        }
+
     }
 
     public static class UI {

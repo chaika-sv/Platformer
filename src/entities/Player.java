@@ -1,5 +1,6 @@
 package entities;
 
+import gamestates.Playing;
 import main.Game;
 import utils.LoadSave;
 
@@ -12,6 +13,8 @@ import static utils.Constants.PlayerConstants.*;
 import static utils.HelpMethods.*;
 
 public class Player extends Entity{
+
+    private Playing playing;
 
     private BufferedImage[][] animations;
     private int animTick, animIndex, animSpeed = 15;
@@ -52,10 +55,14 @@ public class Player extends Entity{
 
     private int flipX = 0;
     private int flipW = 1;
+    private boolean attackChecked;
 
 
-    public Player(float x, float y, int width, int height) {
+    public Player(float x, float y, int width, int height, Playing playing) {
         super(x, y, width, height);
+
+        this.playing = playing;
+
         loadAnimations();
         initHitbox(x, y, (int) (20*Game.SCALE), (int) (27*Game.SCALE));     // 20px x 27px - actual size of the player
         initAttackBox();
@@ -73,11 +80,34 @@ public class Player extends Entity{
      */
     public void update() {
         updateHealthBar();
+
+        // The player is dead
+        if (currentHealth <= 0) {
+            playing.setGameOver(true);
+            return;
+        }
+
         updateAttackBox();
 
         updatePosition();
+        if (attacking)
+            checkAttack();
+
         updateAnimationTick();
         setAnimation();
+    }
+
+    /**
+     * When player attacks we need to check if he hits someone
+     */
+    private void checkAttack() {
+        // We need to check it just once per animation when animation index is 1
+        // otherwise no need to do anything
+        if (attackChecked || animIndex != 1)
+            return;
+
+        attackChecked = true;
+        playing.checkEnemyHit(attackBox);
     }
 
     /**
@@ -289,6 +319,7 @@ public class Player extends Entity{
             if (animIndex >= GetSpritesAmount(playerAction)) {
                 animIndex = 0;
                 attacking = false;
+                attackChecked = false;
             }
         }
     }
@@ -312,8 +343,16 @@ public class Player extends Entity{
                 playerAction = FALLING;
         }
 
-        if (attacking)
+        if (attacking) {
             playerAction = ATTACK;
+            // If we just starting the attack animation (first tick)
+            if (startAni != ATTACK) {
+                // Then let's start showing attack sprites from the second one since it looks better
+                animIndex = 1;
+                animTick = 0;
+                return;     // return to don't go to resetAnyTick() below since we already reset index and tick
+            }
+        }
 
         // In case we have new animation (i.e. another button was pressed) we need to reset previous animation
         if (startAni != playerAction)
@@ -339,7 +378,24 @@ public class Player extends Entity{
         down = false;
     }
 
+    /**
+     * Reset everything for the player to be ready to start the game again
+     */
+    public void resetAll() {
+        resetDirBooleans();
+        inAir = false;
+        attacking = false;
+        moving = false;
+        playerAction = IDLE;
+        currentHealth = maxHealth;
 
+        hitbox.x = x;
+        hitbox.y = y;
+
+        // If we start the game in the air
+        if (!IsEntityOnFloor(hitbox, lvlData))
+            inAir = true;
+    }
 
     public void setAttacking(boolean attacking ) {
         this.attacking = attacking;
@@ -380,4 +436,5 @@ public class Player extends Entity{
     public void setJump(boolean jump) {
         this.jump = jump;
     }
+
 }
