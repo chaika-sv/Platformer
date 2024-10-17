@@ -69,14 +69,12 @@ public class LevelCompletedOverlay {
     public void mouseRelease(MouseEvent e) {
         if (isIn(e, menu)) {
             if (menu.isMousePressed()) {
-                //Gamestate.state = Gamestate.MENU;
-                //playing.unpausedGame();
-                System.out.println("Menu");
+                playing.resetAll();
+                Gamestate.state = Gamestate.MENU;
             }
         } else if (isIn(e, next)) {
             if (next.isMousePressed()) {
-                //playing.unpausedGame();
-                System.out.println("Next");
+                playing.loadNextLevel();
             }
         }
 

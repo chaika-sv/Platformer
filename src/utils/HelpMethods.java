@@ -1,9 +1,15 @@
 package utils;
 
+import entities.Crabby;
 import main.Game;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+
+import static utils.Constants.EnemyConstants.CRABBY;
+import static utils.LoadSave.GetSpriteAtlas;
 
 public class HelpMethods {
 
@@ -139,6 +145,63 @@ public class HelpMethods {
         else
             return IsAllTilesWalkable(firstXTile, secondXTile, tileY, lvlData);
 
+    }
+
+    /**
+     * The method returns info how to draw the level screen based of level sprite.
+     * Each pixel on the sprite says what we need to draw in the according place of our level.
+     * We are looking into the pixel's color.
+     * Red part of it means number of the block in the LEVEL_ATLAS image
+     */
+    public static int[][] GetLevelData(BufferedImage img) {
+        int[][] lvlData = new int[img.getHeight()][img.getWidth()];
+
+        for (int j = 0; j < img.getHeight(); j++)
+            for (int i = 0; i < img.getWidth(); i++) {
+                Color color = new Color(img.getRGB(i, j));
+
+                // Red color in the image means one of the tiles on LEVEL_ATLAS (there are 48 tiles on the sprite)
+                int value = color.getRed();
+                if (value >= 48)
+                    value = 0;
+
+                lvlData[j][i] = value;
+            }
+
+        return lvlData;
+    }
+
+    public static ArrayList<Crabby> GetCrabs(BufferedImage img) {
+        ArrayList<Crabby> list = new ArrayList<>();
+
+        for (int j = 0; j < img.getHeight(); j++)
+            for (int i = 0; i < img.getWidth(); i++) {
+                Color color = new Color(img.getRGB(i, j));
+
+                // Green color is crabby or player
+                int value = color.getGreen();
+                if (value == CRABBY)
+                    list.add(new Crabby(i * Game.TILES_SIZE, j * Game.TILES_SIZE));
+
+            }
+
+        return list;
+    }
+
+    public static Point GetPlayerSpawn(BufferedImage img) {
+        for (int j = 0; j < img.getHeight(); j++)
+            for (int i = 0; i < img.getWidth(); i++) {
+                Color color = new Color(img.getRGB(i, j));
+
+                // Green (100) is player
+                int value = color.getGreen();
+                if (value == 100)
+                    return new Point(i * Game.TILES_SIZE, j * Game.TILES_SIZE);
+
+            }
+
+        // If didn't find player then top left corner
+        return new Point(1 * Game.TILES_SIZE, 1 * Game.TILES_SIZE);
     }
 
 }

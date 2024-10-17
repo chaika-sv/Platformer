@@ -68,6 +68,13 @@ public class Player extends Entity{
         initAttackBox();
     }
 
+    public void setSpawn(Point spawn) {
+        this.x = spawn.x;
+        this.y = spawn.y;
+        hitbox.x = x;
+        hitbox.y = y;
+    }
+
     /**
      * It's a box ahead of the player. Inside the box (if player attacks) enemy receive damage
      */

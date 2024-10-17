@@ -6,8 +6,11 @@ import main.Game;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 
 import static utils.Constants.EnemyConstants.*;
@@ -16,8 +19,8 @@ public class LoadSave {
 
     public static final String PLAYER_ATLAS = "player_sprites.png";
     public static final String LEVEL_ATLAS = "outside_sprites.png";
-    //public static final String LEVEL_ONE_DATA = "level_one_data.png";
-    public static final String LEVEL_ONE_DATA = "level_one_data_long_2.png";
+    public static final String LEVEL_ONE_DATA = "level_one_data.png";
+    //public static final String LEVEL_ONE_DATA = "level_one_data_long_2.png";
     public static final String MENU_BUTTONS = "button_atlas.png";
     public static final String MENU_BACKGROUND = "menu_background.png";
     public static final String MENU_BACKGROUND_IMG = "background_menu.png";
@@ -51,47 +54,37 @@ public class LoadSave {
         return img;
     }
 
-    public static ArrayList<Crabby> GetCrabs() {
-        BufferedImage img = GetSpriteAtlas(LEVEL_ONE_DATA);
-        ArrayList<Crabby> list = new ArrayList<>();
+    public static BufferedImage[] GetAllLevels() {
+        URL url = LoadSave.class.getResource("/lvls");
+        File file = null;
 
-        for (int j = 0; j < img.getHeight(); j++)
-            for (int i = 0; i < img.getWidth(); i++) {
-                Color color = new Color(img.getRGB(i, j));
+        try {
+            file = new File(url.toURI());
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
 
-                // Green color is crabby
-                int value = color.getGreen();
-                if (value == CRABBY)
-                    list.add(new Crabby(i * Game.TILES_SIZE, j * Game.TILES_SIZE));
+        assert file != null;
+        File[] files = file.listFiles();
+        File[] filesSorted = new File[files.length];
 
+        for (int i = 0; i < filesSorted.length; i++)
+            for (int j = 0; j < files.length; j++) {
+                if (files[j].getName().equals("" + (i + 1) + ".png"))
+                    filesSorted[i] = files[j];
             }
 
-        return list;
-    }
 
-    /**
-     * The method returns info how to draw the level screen based of level sprite.
-     * Each pixel on the sprite says what we need to draw in the according place of our level.
-     * We are looking into the pixel's color.
-     * Red part of it means number of the block in the LEVEL_ATLAS image
-     */
-    public static int[][] GetLevelData() {
-        BufferedImage img = GetSpriteAtlas(LEVEL_ONE_DATA);
-        int[][] lvlData = new int[img.getHeight()][img.getWidth()];
+        BufferedImage[] imgs = new BufferedImage[filesSorted.length];
 
-        for (int j = 0; j < img.getHeight(); j++)
-            for (int i = 0; i < img.getWidth(); i++) {
-                Color color = new Color(img.getRGB(i, j));
+        try {
+            for (int i = 0; i < imgs.length; i++)
+                imgs[i] = ImageIO.read(filesSorted[i]);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-                // Red color in the image means one of the tiles on LEVEL_ATLAS (there are 48 tiles on the sprite)
-                int value = color.getRed();
-                if (value >= 48)
-                    value = 0;
-
-                lvlData[j][i] = value;
-            }    
-        
-        return lvlData;
+        return imgs;
     }
 
 

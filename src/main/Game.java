@@ -5,6 +5,7 @@ import gamestates.Gamestate;
 import gamestates.Menu;
 import gamestates.Playing;
 import levels.LevelManager;
+import utils.LoadSave;
 
 import java.awt.*;
 
@@ -30,6 +31,9 @@ public class Game implements Runnable{
 
 
     public Game() {
+
+        LoadSave.GetAllLevels();
+
         initClasses();
 
         gamePanel = new GamePanel(this);
