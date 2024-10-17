@@ -5,6 +5,7 @@ import entities.Player;
 import levels.LevelManager;
 import main.Game;
 import ui.GameOverOverlay;
+import ui.LevelCompletedOverlay;
 import ui.PauseOverLay;
 import utils.LoadSave;
 
@@ -24,7 +25,9 @@ public class Playing extends State implements Statemethods{
     private EnemyManager enemyManager;
     private PauseOverLay pauseOverLay;
     private GameOverOverlay gameOverOverlay;
+    private LevelCompletedOverlay levelCompletedOverlay;
     private boolean paused = false;
+    private boolean lvlCompleted = true;
 
     private int xLvlOffset;
     private int leftBorder = (int) (0.2 * Game.GAME_WIDTH);     // left 20% of the visible screen (in pixels). when we reach it we need to move screen
@@ -60,6 +63,7 @@ public class Playing extends State implements Statemethods{
         player.loadLvlData(levelManager.getCurrentLevel().getLvlData());
         pauseOverLay = new PauseOverLay(this);
         gameOverOverlay = new GameOverOverlay(this);
+        levelCompletedOverlay = new LevelCompletedOverlay(this);
     }
 
 
@@ -69,14 +73,18 @@ public class Playing extends State implements Statemethods{
 
     @Override
     public void update() {
-        if (!paused && !gameOver) {
+
+        if (paused) {
+            pauseOverLay.update();
+        } else if (lvlCompleted) {
+            levelCompletedOverlay.update();
+        } else if (!gameOver) {
             levelManager.update();
             player.update();
             enemyManager.update(levelManager.getCurrentLevel().getLvlData());
             checkCloseToBorder();
-        } else {
-            pauseOverLay.update();
         }
+
     }
 
     /**
@@ -146,6 +154,8 @@ public class Playing extends State implements Statemethods{
             pauseOverLay.draw(g);
         } else if (gameOver) {
             gameOverOverlay.draw(g);;
+        } else if (lvlCompleted) {
+            levelCompletedOverlay.draw(g);
         }
     }
 
@@ -187,23 +197,32 @@ public class Playing extends State implements Statemethods{
 
     @Override
     public void mousePressed(MouseEvent e) {
-        if (!gameOver)
+        if (!gameOver) {
             if (paused)
                 pauseOverLay.mousePressed(e);
+            if (lvlCompleted)
+                levelCompletedOverlay.mousePressed(e);
+        }
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        if (!gameOver)
+        if (!gameOver) {
             if (paused)
                 pauseOverLay.mouseReleased(e);
+            else if (lvlCompleted)
+                levelCompletedOverlay.mouseRelease(e);
+        }
     }
 
     @Override
     public void mouseMoved(MouseEvent e) {
-        if (!gameOver)
+        if (!gameOver) {
             if (paused)
                 pauseOverLay.mouseMoved(e);
+            else if (lvlCompleted)
+                levelCompletedOverlay.mouseMoved(e);
+        }
     }
 
     public void mouseDragged(MouseEvent e) {

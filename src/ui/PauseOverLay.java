@@ -116,7 +116,8 @@ public class PauseOverLay {
         else if (isIn(e, menuButton))
             menuButton.setMousePressed(true);
         else if (isIn(e, volumeButton))
-            volumeButton.setMousePressed(true);    }
+            volumeButton.setMousePressed(true);
+    }
 
     public void mouseReleased(MouseEvent e) {
         if (isIn(e, musicButton)) {
