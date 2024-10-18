@@ -1,19 +1,12 @@
 package utils;
 
-import entities.Crabby;
-import main.Game;
-
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
-
-import static utils.Constants.EnemyConstants.*;
 
 public class LoadSave {
 
@@ -34,6 +27,8 @@ public class LoadSave {
     public static final String CRABBY_SPRITE = "crabby_sprite.png";
     public static final String STATUS_BAR = "health_power_bar.png";
     public static final String COMPLETED_SPRITE = "completed_sprite.png";
+    public static final String CONTAINER_SPRITE = "objects_sprite.png";
+    public static final String POTION_SPRITE = "potions_sprite.png";
 
 
     public static BufferedImage GetSpriteAtlas(String fileName) {
