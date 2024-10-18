@@ -11,12 +11,11 @@ import static utils.Constants.EnemyConstants.*;
 public class Crabby extends Enemy {
 
     // Attack box - the box in front of the player when player can make some damage to enemy
-    private Rectangle2D.Float attackBox;
     private int attackBoxOffsetX;
 
     public Crabby(float x, float y) {
         super(x, y, CRABBY_WIDTH, CRABBY_HEIGHT, CRABBY);
-        initHitbox(x, y, (int) (22 * Game.SCALE), (int) (19 * Game.SCALE));       // 22 x 19 actual size of crabby hitbox
+        initHitbox(22, 19);       // 22 x 19 actual size of crabby hitbox
         initAttackBox();
     }
 
@@ -46,7 +45,7 @@ public class Crabby extends Enemy {
             updateInAir(lvlData);
         else {
             // If not in the air then patrol
-            switch (enemyState) {
+            switch (state) {
                 case IDLE:
                     newState(RUNNING);
                     break;
@@ -74,11 +73,6 @@ public class Crabby extends Enemy {
                     break;
             }
         }
-    }
-
-    public void drawAttackBox(Graphics g, int xLvlOffset) {
-        g.setColor(Color.red);
-        g.drawRect((int)(attackBox.x - xLvlOffset), (int)attackBox.y, (int)attackBox.width, (int)attackBox.height);
     }
 
     public int flipX() {
