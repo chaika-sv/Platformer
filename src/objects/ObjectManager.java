@@ -1,10 +1,12 @@
 package objects;
 
+import entities.Crabby;
 import gamestates.Playing;
 import levels.Level;
 import utils.LoadSave;
 
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
@@ -28,6 +30,64 @@ public class ObjectManager {
 //        potions.add(new Potion(400, 300, BLUE_POTION));
 //        containers.add(new GameContainer(500, 300, BARREL));
 //        containers.add(new GameContainer(600, 300, BOX));
+    }
+
+    /**
+     * Player touched one of the potions
+     */
+    public void checkObjectTouched(Rectangle2D.Float hitbox) {
+        for(Potion p : potions)
+            if (p.isActive()) {
+                if (hitbox.intersects(p.getHitbox())) {
+                    p.setActive(false);
+                    applyEffectToPlayer(p);
+                }
+            }
+    }
+
+    /**
+     * Add some health or energy for the player
+     */
+    public void applyEffectToPlayer(Potion p) {
+        if (p.getObjType() == RED_POTION)
+            playing.getPlayer().changeHealth(RED_POTION_VALUE);
+        else if (p.getObjType() == BLUE_POTION)
+            playing.getPlayer().changePower(BLUE_POTION_VALUE);
+    }
+
+    /**
+     * When player hit box or barrel we create on of the potions (at the place of the container)
+     * @param attachBox player's attack box
+     */
+    public void checkObjectHit(Rectangle2D.Float attachBox) {
+        for(GameContainer gc : containers)
+            if (gc.isActive()) {
+                if (gc.getHitbox().intersects(attachBox)) {
+                    gc.setAnimation(true);
+
+                    int type = 0;
+                    if (gc.getObjType() == BARREL)
+                        type = 1;
+                    else if (gc.getObjType() == BOX)
+                        type = 0;
+
+                    potions.add(new Potion(
+                            (int) (gc.getHitbox().x + gc.getHitbox().width / 2),
+                            (int) (gc.getHitbox().y - gc.getHitbox().height / 2),
+                            type));
+
+                    return;
+                }
+            }
+
+    }
+
+    public void resetAllObjects() {
+        for(Potion p : potions)
+            p.reset();
+
+        for(GameContainer gc : containers)
+            gc.reset();
     }
 
     public void loadObjects(Level level) {
