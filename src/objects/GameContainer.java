@@ -24,6 +24,9 @@ public class GameContainer extends GameObject{
             xDrawOffset = (int) (6 * Game.SCALE);
             yDrawOffset = (int) (5 * Game.SCALE);
         }
+
+        hitbox.y += yDrawOffset + (int) (Game.SCALE * 2);       // 2 = 32 (tile size) - 30 (sprite size)
+        hitbox.x += xDrawOffset / 2;    // center it
     }
 
 

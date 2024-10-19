@@ -1,6 +1,7 @@
 package objects;
 
 import gamestates.Playing;
+import levels.Level;
 import utils.LoadSave;
 
 import java.awt.*;
@@ -23,10 +24,17 @@ public class ObjectManager {
         potions = new ArrayList<>();
         containers = new ArrayList<>();
 
-        potions.add(new Potion(300, 300, RED_POTION));
-        potions.add(new Potion(400, 300, BLUE_POTION));
-        containers.add(new GameContainer(500, 300, BARREL));
-        containers.add(new GameContainer(600, 300, BOX));
+//        potions.add(new Potion(300, 300, RED_POTION));
+//        potions.add(new Potion(400, 300, BLUE_POTION));
+//        containers.add(new GameContainer(500, 300, BARREL));
+//        containers.add(new GameContainer(600, 300, BOX));
+    }
+
+    public void loadObjects(Level level) {
+        potions = level.getPotions();
+        containers = level.getContainers();
+        System.out.println("Size of potions: " + potions.size());
+        System.out.println("Size of containers: " + containers.size());
     }
 
     private void loadImgs() {

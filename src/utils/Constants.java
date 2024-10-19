@@ -4,7 +4,7 @@ import main.Game;
 
 public class Constants {
 
-    public static final boolean DEBUG_MODE = false;
+    public static final boolean DEBUG_MODE = true;
 
     public static final float GRAVITY = 0.04f * Game.SCALE;
     public static final float ANI_SPEED = 25;
