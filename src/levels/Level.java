@@ -4,6 +4,7 @@ import entities.Crabby;
 import main.Game;
 import objects.GameContainer;
 import objects.Potion;
+import objects.Spike;
 import utils.HelpMethods;
 
 import java.awt.*;
@@ -19,6 +20,7 @@ public class Level {
     private ArrayList <Crabby> crabs;
     private ArrayList <Potion> potions;
     private ArrayList <GameContainer> containers;
+    private ArrayList <Spike> spikes;
     private int lvlTilesWide;       // whole level width (in tiles)
     private int maxTilesOffset;     // whole level width minus visible screen width (in tiles). Invisible part of the level
     private int maxLvlOffsetX;      // previous one in pixels
@@ -30,8 +32,13 @@ public class Level {
         createEnemies();
         createPotions();
         createContainers();
+        createSpikes();
         calcLevelOffset();
         calcPlayerSpwan();
+    }
+
+    private void createSpikes() {
+        spikes = HelpMethods.GetSpikes(img);
     }
 
     private void createPotions() {
@@ -86,5 +93,9 @@ public class Level {
 
     public ArrayList<GameContainer> getContainers() {
         return containers;
+    }
+
+    public ArrayList<Spike> getSpikes() {
+        return spikes;
     }
 }

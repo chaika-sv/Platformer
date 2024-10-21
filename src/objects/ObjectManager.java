@@ -1,6 +1,6 @@
 package objects;
 
-import entities.Crabby;
+import entities.Player;
 import gamestates.Playing;
 import levels.Level;
 import utils.LoadSave;
@@ -16,8 +16,10 @@ public class ObjectManager {
 
     private Playing playing;
     private BufferedImage[][] potionImgs, containerImgs;
+    private BufferedImage spikeImg;
     private ArrayList<Potion> potions;
     private ArrayList<GameContainer> containers;
+    private ArrayList<Spike> spikes;
 
     public ObjectManager(Playing playing) {
         this.playing = playing;
@@ -30,6 +32,16 @@ public class ObjectManager {
 //        potions.add(new Potion(400, 300, BLUE_POTION));
 //        containers.add(new GameContainer(500, 300, BARREL));
 //        containers.add(new GameContainer(600, 300, BOX));
+    }
+
+    /**
+     * Check if player touch any of spikes. If so, he must die
+     * @param player
+     */
+    public void checkSpikesTouched(Player player) {
+        for (Spike s : spikes)
+            if (s.getHitbox().intersects(player.getHitbox()))
+                player.kill();
     }
 
     /**
@@ -61,7 +73,7 @@ public class ObjectManager {
      */
     public void checkObjectHit(Rectangle2D.Float attachBox) {
         for(GameContainer gc : containers)
-            if (gc.isActive()) {
+            if (gc.isActive() && !gc.doAnimation) {
                 if (gc.getHitbox().intersects(attachBox)) {
                     gc.setAnimation(true);
 
@@ -83,6 +95,12 @@ public class ObjectManager {
     }
 
     public void resetAllObjects() {
+
+        // We need to load objects again because its number could be increased since they were created when we
+        // started the level (we create new potion when we hit box or barrel)
+        // So we need to reset the addition potions as well
+        loadObjects(playing.getLevelManager().getCurrentLevel());
+
         for(Potion p : potions)
             p.reset();
 
@@ -91,10 +109,12 @@ public class ObjectManager {
     }
 
     public void loadObjects(Level level) {
-        potions = level.getPotions();
-        containers = level.getContainers();
-        System.out.println("Size of potions: " + potions.size());
-        System.out.println("Size of containers: " + containers.size());
+        // Initially it's a copy of objects from level data
+        potions = new ArrayList<>(level.getPotions());
+        containers = new ArrayList<>(level.getContainers());
+
+        // No need to copy it since spikes are static objects and we are not going to add new spikes or delete existing
+        spikes = level.getSpikes();
     }
 
     private void loadImgs() {
@@ -112,6 +132,8 @@ public class ObjectManager {
         for (int j = 0; j < containerImgs.length; j++)
             for (int i = 0; i < containerImgs[j].length; i++)
                 containerImgs[j][i] = containerSprite.getSubimage(40 * i, 30 * j, 40, 30);
+
+        spikeImg = LoadSave.GetSpriteAtlas(LoadSave.SPIKE_SPRITE);
     }
 
     public void update() {
@@ -125,6 +147,7 @@ public class ObjectManager {
     public void draw(Graphics g, int xLvlOffset) {
         drawPotions(g, xLvlOffset);
         drawContainers(g, xLvlOffset);
+        drawTraps(g, xLvlOffset);
     }
 
     private void drawPotions(Graphics g, int xLvlOffset) {
@@ -137,8 +160,8 @@ public class ObjectManager {
                 }
 
                 g.drawImage(potionImgs[pType][p.getAniIndex()],
-                        (int) p.getHitbox().x - p.getxDrawOffset() - xLvlOffset,
-                        (int) p.getHitbox().y - p.getyDrawOffset(),
+                        (int) (p.getHitbox().x - p.getxDrawOffset() - xLvlOffset),
+                        (int) (p.getHitbox().y - p.getyDrawOffset()),
                         POTION_WIDTH,
                         POTION_HEIGHT,
                         null
@@ -156,13 +179,29 @@ public class ObjectManager {
                 }
 
                 g.drawImage(containerImgs[cType][gc.getAniIndex()],
-                        (int) gc.getHitbox().x - gc.getxDrawOffset() - xLvlOffset,
-                        (int) gc.getHitbox().y - gc.getyDrawOffset(),
+                        (int) (gc.getHitbox().x - gc.getxDrawOffset() - xLvlOffset),
+                        (int) (gc.getHitbox().y - gc.getyDrawOffset()),
                         CONTAINER_WIDTH,
                         CONTAINER_HEIGHT,
                         null
                 );
             }
     }
+
+    private void drawTraps(Graphics g, int xLvlOffset) {
+
+        for(Spike s : spikes)
+            if (s.isActive())
+                g.drawImage(spikeImg,
+                        (int) (s.getHitbox().x - s.getxDrawOffset() - xLvlOffset),
+                        (int) (s.getHitbox().y - s.getyDrawOffset()),
+                        SPIKE_WIDTH,
+                        SPIKE_HEIGHT,
+                        null
+        );
+
+
+    }
+
 
 }

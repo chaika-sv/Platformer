@@ -204,6 +204,10 @@ public class Playing extends State implements Statemethods{
         objectManager.checkObjectTouched(hitbox);
     }
 
+    public void checkSpikesTouched(Player p) {
+        objectManager.checkSpikesTouched(p);
+    }
+
     /**
      * Reset all when game over
      */
@@ -310,5 +314,9 @@ public class Playing extends State implements Statemethods{
 
     public ObjectManager getObjectManager() {
         return objectManager;
+    }
+
+    public LevelManager getLevelManager() {
+        return levelManager;
     }
 }
