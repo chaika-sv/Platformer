@@ -2,6 +2,7 @@ package utils;
 
 import entities.Crabby;
 import main.Game;
+import objects.Cannon;
 import objects.GameContainer;
 import objects.Potion;
 import objects.Spike;
@@ -199,7 +200,7 @@ public class HelpMethods {
             for (int i = 0; i < img.getWidth(); i++) {
                 Color color = new Color(img.getRGB(i, j));
 
-                // Red color is object
+                // Blue color is object
                 int value = color.getBlue();
                 if (value == RED_POTION || value == BLUE_POTION)
                     list.add(new Potion(i * Game.TILES_SIZE, j * Game.TILES_SIZE, value));
@@ -215,7 +216,7 @@ public class HelpMethods {
             for (int i = 0; i < img.getWidth(); i++) {
                 Color color = new Color(img.getRGB(i, j));
 
-                // Red color is object
+                // Blue color is object
                 int value = color.getBlue();
                 if (value == BOX || value == BARREL)
                     list.add(new GameContainer(i * Game.TILES_SIZE, j * Game.TILES_SIZE, value));
@@ -231,10 +232,26 @@ public class HelpMethods {
             for (int i = 0; i < img.getWidth(); i++) {
                 Color color = new Color(img.getRGB(i, j));
 
-                // Red color is object
+                // Blue color is object
                 int value = color.getBlue();
                 if (value == SPIKE)
                     list.add(new Spike(i * Game.TILES_SIZE, j * Game.TILES_SIZE, SPIKE));
+            }
+
+        return list;
+    }
+
+    public static ArrayList<Cannon> GetCannons(BufferedImage img) {
+        ArrayList<Cannon> list = new ArrayList<>();
+
+        for (int j = 0; j < img.getHeight(); j++)
+            for (int i = 0; i < img.getWidth(); i++) {
+                Color color = new Color(img.getRGB(i, j));
+
+                // Blue color is object
+                int value = color.getBlue();
+                if (value == CANNON_LEFT || value == CANNON_RIGHT)
+                    list.add(new Cannon(i * Game.TILES_SIZE, j * Game.TILES_SIZE, value));
             }
 
         return list;

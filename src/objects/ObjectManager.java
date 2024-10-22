@@ -16,22 +16,16 @@ public class ObjectManager {
 
     private Playing playing;
     private BufferedImage[][] potionImgs, containerImgs;
+    private BufferedImage[] cannonImgs;
     private BufferedImage spikeImg;
     private ArrayList<Potion> potions;
     private ArrayList<GameContainer> containers;
     private ArrayList<Spike> spikes;
+    private ArrayList<Cannon> cannons;
 
     public ObjectManager(Playing playing) {
         this.playing = playing;
         loadImgs();
-
-        potions = new ArrayList<>();
-        containers = new ArrayList<>();
-
-//        potions.add(new Potion(300, 300, RED_POTION));
-//        potions.add(new Potion(400, 300, BLUE_POTION));
-//        containers.add(new GameContainer(500, 300, BARREL));
-//        containers.add(new GameContainer(600, 300, BOX));
     }
 
     /**
@@ -106,6 +100,9 @@ public class ObjectManager {
 
         for(GameContainer gc : containers)
             gc.reset();
+
+        for(Cannon c : cannons)
+            c.reset();
     }
 
     public void loadObjects(Level level) {
@@ -113,8 +110,9 @@ public class ObjectManager {
         potions = new ArrayList<>(level.getPotions());
         containers = new ArrayList<>(level.getContainers());
 
-        // No need to copy it since spikes are static objects and we are not going to add new spikes or delete existing
+        // No need to copy it since these are static objects and we are not going to add new spikes or delete existing
         spikes = level.getSpikes();
+        cannons = level.getCannons();
     }
 
     private void loadImgs() {
@@ -134,6 +132,12 @@ public class ObjectManager {
                 containerImgs[j][i] = containerSprite.getSubimage(40 * i, 30 * j, 40, 30);
 
         spikeImg = LoadSave.GetSpriteAtlas(LoadSave.SPIKE_SPRITE);
+
+        BufferedImage cannonSprite = LoadSave.GetSpriteAtlas(LoadSave.CANNON_SPRITE);
+        cannonImgs = new BufferedImage[7];
+
+        for (int i = 0; i < cannonImgs.length; i++)
+            cannonImgs[i] = cannonSprite.getSubimage(40 * i, 0, 40, 26);
     }
 
     public void update() {
@@ -142,12 +146,44 @@ public class ObjectManager {
 
         for(GameContainer gc : containers)
             gc.update();
+        
+        updateCannons();
+    }
+
+    private void updateCannons() {
+        for(Cannon c : cannons)
+            c.update();
     }
 
     public void draw(Graphics g, int xLvlOffset) {
         drawPotions(g, xLvlOffset);
         drawContainers(g, xLvlOffset);
         drawTraps(g, xLvlOffset);
+        drawCannons(g, xLvlOffset);
+    }
+
+    private void drawCannons(Graphics g, int xLvlOffset) {
+        for(Cannon c : cannons)
+            if (c.isActive()) {
+
+                // If it's LEFT CANNON then use normal x and width
+                int x = (int) (c.getHitbox().x - xLvlOffset);
+                int width = CANNON_WIDTH;
+
+                // If it's RIGHT CANNON then di the magic to flip it
+                if (c.getObjType() == CANNON_RIGHT) {
+                    x += width;
+                    width *= -1;
+                }
+
+                g.drawImage(cannonImgs[c.getAniIndex()],
+                        x,
+                        (int) c.getHitbox().y,
+                        width,
+                        CANNON_HEIGHT,
+                        null
+                );
+            }
     }
 
     private void drawPotions(Graphics g, int xLvlOffset) {
