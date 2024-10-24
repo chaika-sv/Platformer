@@ -83,9 +83,25 @@ public class Player extends Entity{
     public void update() {
         updateHealthBar();
 
-        // The player is dead
         if (currentHealth <= 0) {
-            playing.setGameOver(true);
+            // We need to kill the player in case he hasn't  been killed yet
+            if (state != DEAD) {
+                // We start killing the player
+                state = DEAD;
+                aniTick = 0;
+                aniIndex = 0;
+                // The boolean that tells playing to stop everything else except the player
+                playing.setPlayerDying(true);
+            } else if (aniIndex == GetSpritesAmount(DEAD) - 1 && aniTick >= ANI_SPEED - 1) {
+                // Check the end of animation
+                // aniIndex == GetSpritesAmount(DEAD) - 1       means it's last animation index
+                // aniTick >= ANI_SPEED - 1                     means it's last animation tick
+                // We are finally killing the player
+                playing.setGameOver(true);
+            } else
+                // Keep animating until the final tick
+                updateAnimationTick();
+
             return;
         }
 
@@ -188,8 +204,7 @@ public class Player extends Entity{
     public void changeHealth(int value) {
         currentHealth += value;
         if (currentHealth <= 0) {
-            currentHealth = 0;
-            //gameOver();
+            kill();
         } else if (currentHealth >= maxHealth) {
             currentHealth = maxHealth;
         }

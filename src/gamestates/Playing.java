@@ -40,6 +40,7 @@ public class Playing extends State implements Statemethods{
     private int[] smallCloudPos;        // random y positions of small clouds
     private Random rnd = new Random();
     private boolean gameOver = false;
+    private boolean playerDying = false;
 
     public Playing(Game game) {
         super(game);
@@ -98,7 +99,11 @@ public class Playing extends State implements Statemethods{
             pauseOverLay.update();
         } else if (lvlCompleted) {
             levelCompletedOverlay.update();
-        } else if (!gameOver) {
+        } else if (gameOver) {
+            //gameOverOverlay.update();
+        } else if (playerDying) {
+            player.update();
+        } else {
             levelManager.update();
             player.update();
             enemyManager.update(levelManager.getCurrentLevel().getLvlData());
@@ -215,9 +220,14 @@ public class Playing extends State implements Statemethods{
         gameOver = false;
         paused = false;
         lvlCompleted = false;
+        playerDying = false;
         player.resetAll();
         enemyManager.resetAllEnemies();
         objectManager.resetAllObjects();
+    }
+
+    public void setPlayerDying(boolean playerDying) {
+        this.playerDying = playerDying;
     }
 
     public void setGameOver(boolean gameOver) {
@@ -319,4 +329,5 @@ public class Playing extends State implements Statemethods{
     public LevelManager getLevelManager() {
         return levelManager;
     }
+
 }
