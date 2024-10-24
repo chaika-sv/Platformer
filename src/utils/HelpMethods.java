@@ -2,10 +2,7 @@ package utils;
 
 import entities.Crabby;
 import main.Game;
-import objects.Cannon;
-import objects.GameContainer;
-import objects.Potion;
-import objects.Spike;
+import objects.*;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -55,6 +52,10 @@ public class HelpMethods {
 
         // It's a tile (11 is white empty tile so it's not a tile)
         return value >= 0 && value < 48 && value != 11;
+    }
+
+    public static boolean IsProjectileHittingLevel(Projectile p, int[][] lvlData) {
+        return IsSolid(p.getHitbox().x + p.getHitbox().width / 2, p.getHitbox().y + p.getHitbox().height / 2, lvlData);
     }
 
     /**
