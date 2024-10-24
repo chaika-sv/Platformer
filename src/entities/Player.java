@@ -46,6 +46,8 @@ public class Player extends Entity{
     private int flipW = 1;
     private boolean attackChecked;
 
+    private int tileY = 0;
+
 
     public Player(float x, float y, int width, int height, Playing playing) {
         super(x, y, width, height);
@@ -94,6 +96,7 @@ public class Player extends Entity{
         if (moving) {
             checkPotionTouched();
             checkSpikesTouched();
+            tileY = (int) (hitbox.y / Game.TILES_SIZE);
         }
 
         if (attacking)
@@ -437,4 +440,7 @@ public class Player extends Entity{
         this.jump = jump;
     }
 
+    public int getTileY() {
+        return  tileY;
+    }
 }

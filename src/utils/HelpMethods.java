@@ -123,17 +123,51 @@ public class HelpMethods {
     }
 
     /**
-     * Check if someone can move through all tiles between xStart and xEnd
+     * Check if the cannon can see the player. There are no solid tiles between them
+     * Assuming they are on the same line y (tileY).
+     * Assuming the player is in cannon's range.
+     * Assuming the player is in front of the cannon.
+     * @param lvlData current level data
+     * @param firstHitbox player's hitbox
+     * @param secondHitbox cannon's hitbox
+     * @param tileY same for both player and cannon
+     * @return true if cannon can see
      */
-    public static boolean IsAllTilesWalkable(int xStart, int xEnd, int y, int[][] lvlData) {
-        for (int i = 0; i < xEnd - xStart; i++) {
-            // If there is solid tile on the way then we can't move
+    public static boolean CanCannonSeePlayer(int[][] lvlData, Rectangle2D.Float firstHitbox, Rectangle2D.Float secondHitbox, int tileY) {
+        int firstXTile = (int) (firstHitbox.x / Game.TILES_SIZE);
+        int secondXTile = (int) (secondHitbox.x / Game.TILES_SIZE);
+
+        if (firstXTile > secondXTile)
+            return IsAllTilesClear(secondXTile, firstXTile, tileY, lvlData);
+        else
+            return IsAllTilesClear(firstXTile, secondXTile, tileY, lvlData);
+    }
+
+    /**
+     * Check if there are no solid tiles from one point (xStart) to another (xEnd)
+     * Assuming that they are on the same y-line
+     */
+    public static boolean IsAllTilesClear(int xStart, int xEnd, int y, int[][] lvlData) {
+        for (int i = 0; i < xEnd - xStart; i++)
+            // If there is solid tile on the way
             if (IsTileSolid(xStart + i, y, lvlData))
                 return false;
-            // If there is no solid tile under next tile (it's a pit) then we can't move
-            if (!IsTileSolid(xStart + i, y + 1, lvlData))
-                return false;
-        }
+
+        return true;
+    }
+
+    /**
+     * Check if someone can move through all tiles between xStart and xEnd (no solid tiles and no pit)
+     * Assuming that they are on the same y-line
+     */
+    public static boolean IsAllTilesWalkable(int xStart, int xEnd, int y, int[][] lvlData) {
+
+        // If there is solid tile on the way then we can't move
+        if (IsAllTilesClear(xStart, xEnd, y, lvlData))
+            for (int i = 0; i < xEnd - xStart; i++)
+                // If there is no solid tile under next tile (it's a pit) then we can't move
+                if (!IsTileSolid(xStart + i, y + 1, lvlData))
+                    return false;
 
         return true;
     }
@@ -273,5 +307,6 @@ public class HelpMethods {
         // If didn't find player then top left corner
         return new Point(1 * Game.TILES_SIZE, 1 * Game.TILES_SIZE);
     }
+
 
 }

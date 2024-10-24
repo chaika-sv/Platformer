@@ -3,6 +3,7 @@ package objects;
 import entities.Player;
 import gamestates.Playing;
 import levels.Level;
+import main.Game;
 import utils.LoadSave;
 
 import java.awt.*;
@@ -11,6 +12,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import static utils.Constants.ObjectConstants.*;
+import static utils.HelpMethods.CanCannonSeePlayer;
 
 public class ObjectManager {
 
@@ -140,19 +142,55 @@ public class ObjectManager {
             cannonImgs[i] = cannonSprite.getSubimage(40 * i, 0, 40, 26);
     }
 
-    public void update() {
+    public void update(int[][] lvlData, Player player) {
         for(Potion p : potions)
             p.update();
 
         for(GameContainer gc : containers)
             gc.update();
         
-        updateCannons();
+        updateCannons(lvlData, player);
     }
 
-    private void updateCannons() {
-        for(Cannon c : cannons)
+    private void updateCannons(int[][] lvlData, Player player) {
+        for(Cannon c : cannons) {
+
+            // if the cannon is not already animating (shooting)
+            if (!c.doAnimation)
+                // is cannon's tileY is the same as player's y
+                if (c.getTileY() == player.getTileY())
+                    // is player in the range
+                    if (isPlayerInRangeOfCannon(c, player))
+                        // is player in front of cannon
+                        if (isPlayerInFrontOfCannon(c, player))
+                            // check line of sight
+                            if (CanCannonSeePlayer(lvlData, player.getHitbox(), c.getHitbox(), c.getTileY())) {
+                                // SHOOT
+                                shootCannon(c);
+                            }
+
             c.update();
+        }
+
+    }
+
+    private void shootCannon(Cannon c) {
+        c.setAnimation(true);
+    }
+
+    private boolean isPlayerInFrontOfCannon(Cannon c, Player player) {
+        if (c.getObjType() == CANNON_LEFT) {
+            return c.getHitbox().x > player.getHitbox().x;
+        } else if (c.getObjType() == CANNON_RIGHT) {
+            return c.getHitbox().x < player.getHitbox().x;
+        }
+
+        return false;
+    }
+
+    private boolean isPlayerInRangeOfCannon(Cannon c, Player player) {
+        int absValue = (int) Math.abs(player.getHitbox().x - c.getHitbox().x);
+        return absValue <= Game.TILES_SIZE * 5;
     }
 
     public void draw(Graphics g, int xLvlOffset) {
