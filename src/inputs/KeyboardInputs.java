@@ -32,6 +32,9 @@ public class KeyboardInputs implements KeyListener {
             case MENU -> {
                 gamePanel.getGame().getMenu().keyPressed(e);
             }
+            case OPTIONS -> {
+                gamePanel.getGame().getGameOptions().keyPressed(e);
+            }
         }
     }
 
