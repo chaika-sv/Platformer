@@ -92,7 +92,7 @@ public class PauseOverLay {
     public void mouseReleased(MouseEvent e) {
         if (isIn(e, menuButton)) {
             if (menuButton.isMousePressed()) {
-                Gamestate.state = Gamestate.MENU;
+                playing.setGamestate(Gamestate.MENU);
                 playing.unpausedGame();
             }
         } else if (isIn(e, replayButton)) {

@@ -1,5 +1,6 @@
 package gamestates;
 
+import audio.AudioPlayer;
 import entities.EnemyManager;
 import entities.Player;
 import levels.LevelManager;
@@ -326,6 +327,8 @@ public class Playing extends State implements Statemethods{
 
     public void setLvlCompleted(boolean lvlCompleted) {
         this.lvlCompleted = lvlCompleted;
+        if (lvlCompleted)
+            getGame().getAudioPlayer().lvlCompleted();
     }
 
     public ObjectManager getObjectManager() {

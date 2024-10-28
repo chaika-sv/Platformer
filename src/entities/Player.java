@@ -1,5 +1,6 @@
 package entities;
 
+import audio.AudioPlayer;
 import gamestates.Playing;
 import main.Game;
 import utils.LoadSave;
@@ -92,12 +93,15 @@ public class Player extends Entity{
                 aniIndex = 0;
                 // The boolean that tells playing to stop everything else except the player
                 playing.setPlayerDying(true);
+                playing.getGame().getAudioPlayer().playEffect(AudioPlayer.DIE);
             } else if (aniIndex == GetSpritesAmount(DEAD) - 1 && aniTick >= ANI_SPEED - 1) {
                 // Check the end of animation
                 // aniIndex == GetSpritesAmount(DEAD) - 1       means it's last animation index
                 // aniTick >= ANI_SPEED - 1                     means it's last animation tick
                 // We are finally killing the player
                 playing.setGameOver(true);
+                playing.getGame().getAudioPlayer().stopSong();
+                playing.getGame().getAudioPlayer().playEffect(AudioPlayer.GAMEOVER);
             } else
                 // Keep animating until the final tick
                 updateAnimationTick();
@@ -142,6 +146,7 @@ public class Player extends Entity{
         attackChecked = true;
         playing.checkEnemyHit(attackBox);
         playing.checkObjectHit(attackBox);
+        playing.getGame().getAudioPlayer().playAttackSound();
     }
 
     /**
@@ -319,6 +324,7 @@ public class Player extends Entity{
         if (inAir)
             return;
 
+        playing.getGame().getAudioPlayer().playEffect(AudioPlayer.JUMP);
         inAir = true;
         airSpeed = jumpSpeed;       // Initial speed of jumping
     }
