@@ -43,11 +43,24 @@ public class Player extends Entity{
 
     private int healthWidth = healthBarWidth;
 
+    private int powerBarWidth = (int) (104 * Game.SCALE);
+    private int powerBarHeight = (int) (2 * Game.SCALE);
+    private int powerBarXStart = (int) (44 * Game.SCALE);
+    private int powerBarYStart = (int) (34 * Game.SCALE);
+    private int powerWidth = powerBarWidth;
+    private int powerMaxValue = 200;
+    private int powerValue = powerMaxValue;
+
     private int flipX = 0;
     private int flipW = 1;
     private boolean attackChecked;
 
     private int tileY = 0;
+
+    private boolean powerAttackActive;
+    private int powerAttackTick;
+    private int powerGrowSpeed = 15;
+    private int powerGrowTick;
 
 
     public Player(float x, float y, int width, int height, Playing playing) {
@@ -83,6 +96,7 @@ public class Player extends Entity{
      */
     public void update() {
         updateHealthBar();
+        updatePowerBar();
 
         if (currentHealth <= 0) {
             // We need to kill the player in case he hasn't  been killed yet
@@ -117,9 +131,16 @@ public class Player extends Entity{
             checkPotionTouched();
             checkSpikesTouched();
             tileY = (int) (hitbox.y / Game.TILES_SIZE);
+            if (powerAttackActive) {
+                powerAttackTick++;
+                if (powerAttackTick >= 35) {
+                    powerAttackTick = 0;
+                    powerAttackActive = false;
+                }
+            }
         }
 
-        if (attacking)
+        if (attacking || powerAttackActive)
             checkAttack();
 
         updateAnimationTick();
@@ -144,6 +165,10 @@ public class Player extends Entity{
             return;
 
         attackChecked = true;
+
+        if (powerAttackActive)
+            attackChecked = false;  // Every update we are checking is a new attack
+
         playing.checkEnemyHit(attackBox);
         playing.checkObjectHit(attackBox);
         playing.getGame().getAudioPlayer().playAttackSound();
@@ -153,9 +178,9 @@ public class Player extends Entity{
      * Stick attack box to the player (should be always ahead him)
      */
     private void updateAttackBox() {
-        if (right) {
+        if (right || (powerAttackActive && flipW == 1)) {
             attackBox.x = hitbox.x + hitbox.width + (int) (Game.SCALE * 10);
-        } if (left) {
+        } if (left || (powerAttackActive && flipW == -1)) {
             attackBox.x = hitbox.x - hitbox.width - (int) (Game.SCALE * 10);
         }
 
@@ -167,6 +192,16 @@ public class Player extends Entity{
      */
     private void updateHealthBar() {
         healthWidth = (int) ((currentHealth / (float)maxHealth) * healthBarWidth);
+    }
+
+    private void updatePowerBar() {
+        powerWidth = (int) ((powerValue / (float)powerMaxValue) * powerBarWidth);
+
+        powerGrowTick++;
+        if (powerGrowTick >= powerGrowSpeed) {
+            powerGrowTick = 0;
+            changePower(1);
+        }
     }
 
     /**
@@ -201,6 +236,11 @@ public class Player extends Entity{
         // Draw status bar for health (with statusBarX and statusBarY offsets)
         // healthWidth - actual health (less or equal than healthBarWidth)
         g.fillRect(healthBarXStart + statusBarX, healthBarYStart + statusBarY, healthWidth, healthBarHeight);
+
+        // Power bar
+        g.setColor(Color.yellow);
+        g.fillRect(powerBarXStart + statusBarX, powerBarYStart + statusBarY, powerWidth, powerBarHeight);
+
     }
 
     /**
@@ -223,7 +263,11 @@ public class Player extends Entity{
     }
 
     public void changePower(int value) {
-        System.out.println("Add power!");
+        powerValue += value;
+        if (powerValue >= powerMaxValue)
+            powerValue = powerMaxValue;
+        else if (powerValue <= 0)
+            powerValue = 0;
     }
 
     /**
@@ -269,8 +313,9 @@ public class Player extends Entity{
             jump();
 
         if (!inAir)
-            if ((!left && !right) || (left && right))
-                return;;
+            if (!powerAttackActive)
+                if ((!left && !right) || (left && right))
+                    return;;
 
         float xSpeed = 0;
 
@@ -285,14 +330,25 @@ public class Player extends Entity{
             flipW = 1;
         }
 
+        if (powerAttackActive) {
+            // If we don't have left or right then we need to determine direction using flipW
+            if (!left && !right) {
+                if (flipW == -1)
+                    xSpeed = -walkSpeed;
+                else
+                    xSpeed = walkSpeed;
+            }
+
+            xSpeed *= 3;
+        }
+
         if (!inAir)
             if (!IsEntityOnFloor(hitbox, lvlData))
                 // If we are not in air yet (not falling and not jumping) and we are not on the floor
                 // then we need to fall
                 inAir = true;
 
-        if (inAir) {
-
+        if (inAir && !powerAttackActive) {
             if (CanMoveHere(hitbox.x, hitbox.y + airSpeed, hitbox.width, hitbox.height, lvlData)) {
                 // No collision
                 hitbox.y += airSpeed;
@@ -338,6 +394,10 @@ public class Player extends Entity{
         } else {
             // Can't move but still some little space between the player and wall so we want to move right to the wall
             hitbox.x = GetEntityXPosNextToWall(hitbox, xSpeed);
+            if (powerAttackActive) {
+                powerAttackActive = false;
+                powerAttackTick = 0;
+            }
         }
     }
 
@@ -383,6 +443,14 @@ public class Player extends Entity{
                 state = JUMP;
             else
                 state = FALLING;
+        }
+
+        if (powerAttackActive) {
+            // Keep the attacking state while we are in the power attack
+            state = ATTACK;
+            aniIndex = 1;
+            aniTick = 0;
+            return;
         }
 
         if (attacking) {
@@ -439,6 +507,16 @@ public class Player extends Entity{
 
     public void setAttacking(boolean attacking ) {
         this.attacking = attacking;
+    }
+
+    public void powerAttack() {
+        if (powerAttackActive)
+            return;
+
+        if (powerValue >= 60) {
+            powerAttackActive = true;
+            changePower(-60);
+        }
     }
 
     public boolean isLeft() {
